@@ -1,7 +1,19 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-void main() {
-  runApp(const MyApp());
+import 'package:flutter/material.dart';
+import 'package:airplay/components/app/app_component.dart';
+import 'package:airplay/config/http_overrides.dart';
+import 'package:airplay/models/application.dart';
+
+var gApp = Application();
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await gApp.loadIsCache();
+  await gApp.loadSourceName();
+
+  HttpOverrides.global = ApiHttpOverrides();
+  runApp(const AppComponent());
 }
 
 class MyApp extends StatelessWidget {
