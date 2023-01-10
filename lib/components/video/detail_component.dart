@@ -28,14 +28,6 @@ class _VideoDetailComponentState extends State<VideoDetailComponent> {
   @override
   void initState() {
     super.initState();
-
-    getVideDetail(widget.id!).then((value) {
-      print('[getVideDetail] $value');
-      setState(() {
-        videoDetail = value;
-        _title = '${videoDetail.name}';
-      });
-    });
   }
 
   @override
@@ -47,23 +39,30 @@ class _VideoDetailComponentState extends State<VideoDetailComponent> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBarComponent(title: _title),
-      body: getFrame(),
-    );
-  }
+      body: SingleChildScrollView(
+        // 这里不能使用NeverScrollableScrollPhysics，因为当前就是滚动组建，使用后无法滚动
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 50),
+          child: Column(
+            children: [
+              FutureBuilder(
+                future: getVideDetail('${widget.id}'),
+                builder: (BuildContext context,
+                    AsyncSnapshot<VideoDetail> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  }
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    videoDetail = snapshot.data as VideoDetail;
 
-  Widget getFrame() {
-    if (videoDetail.id == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    return SingleChildScrollView(
-      // 这里不能使用NeverScrollableScrollPhysics，因为当前就是滚动组建，使用后无法滚动
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 50),
-        child: Column(
-          children: [
-            getPlatformFrame(),
-            getFooter(),
-          ],
+                    return getPlatformFrame();
+                  }
+                  return Center(child: Text('${snapshot.error.toString()}'));
+                },
+              ),
+              getFooter(),
+            ],
+          ),
         ),
       ),
     );
